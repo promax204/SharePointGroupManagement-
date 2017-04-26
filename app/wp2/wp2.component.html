@@ -1,0 +1,26 @@
+<h1>{{text}}</h1>
+			<div>
+			<table>
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Title</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let group of groups; let odd=odd; let even=even;" (click)="onSelect(group)" >
+						<td>{{group.itemId}} </td>
+						<td>{{group.title}} </td>
+					</tr>
+				</tbody>
+			</table>
+			</div>
+			<div *ngIf="selectedGroup">
+				<h2>Edit Request Type:{{selectedGroup.itemId}} - {{selectedGroup.title}}</h2>				
+				<textarea #editedValue rows="4" value="{{selectedGroup.title}}" ></textarea>
+				<input type="button" (click)="save(editedValue.value)" value="save">
+				Item description:
+				<pre>
+				{{selectedGroup.title}}
+				</pre>
+			</div>

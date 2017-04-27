@@ -13,6 +13,7 @@ export class GroupEntry extends SharepointListItem{
 			this.description = this.findString('ows_group_x0020_description',rawResponse);
 			this.emails = this.findString('ows_emails',rawResponse);
 			this.arrayOfEmails=GroupEntry.stringToArray(this.emails);
+			this.spGroupName = this.findString('ows_sharepointgroupname', rawResponse);
 		}
 	}
 	
@@ -68,6 +69,7 @@ export class GroupEntry extends SharepointListItem{
 	emails:string;
 	description:string;
 	arrayOfEmails:string[];
+	spGroupName:string;
 	
 	private _emailsString:string;
 	get emailsString():string{

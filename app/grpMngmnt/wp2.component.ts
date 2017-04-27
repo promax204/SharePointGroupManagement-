@@ -35,7 +35,7 @@ import {GroupEntry} from './group-entry';
 						<tr>						
 							<th style="width:10%;">Group Name</th>
 							<th style="width:30%;">Descriptionn</th>
-							<th style="width:5%;">Email count</th>
+							<th style="width:5%;">Members</th>
 							<th style="width:55%;">Emails</th>
 						</tr>
 					</thead>
@@ -103,6 +103,7 @@ import {GroupEntry} from './group-entry';
 				<input type="text" value="jorge.gutierrez@taxx.state.oh.us" #testValue />
 				<input type="button" class="btn btn-primary" (click)="testEmail(testValue.value);"  value="TestAPI" />
 				{{debugValue|json}}
+				{{selectedGroup.spGroupName}}
 			</div>
 	</div>		
 	`,

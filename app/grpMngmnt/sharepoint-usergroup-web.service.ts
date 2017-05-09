@@ -18,18 +18,71 @@ export class SharepointUserGroupWebService{
 	private headers = new Headers({
 								 'Content-Type': 'application/soap+xml; charset=utf-8',
 							 });
-	private getUserLoginFromEmailPayload = `<GetUserLoginFromEmail xmlns="http://schemas.microsoft.com/sharepoint/soap/directory/"><emailXml><Users><User Email="emailString"/></Users></emailXml></GetUserLoginFromEmail>`;
+	private getUserLoginFromEmailPayload = `<GetUserLoginFromEmail xmlns="http://schemas.microsoft.com/sharepoint/soap/directory/"><emailXml><Users>payload</Users></emailXml></GetUserLoginFromEmail>`;
+	private addUserCollectionToGroupPayload=`<AddUserCollectionToGroup xmlns="http://schemas.microsoft.com/sharepoint/soap/directory/">
+      <groupName>groupNamePayload</groupName>
+      <usersInfoXml><Users>usersPayload</Users></usersInfoXml>
+    </AddUserCollectionToGroup>`;
+	private removeUserCollectionFromGroupPayload=`<RemoveUserCollectionFromGroup xmlns="http://schemas.microsoft.com/sharepoint/soap/directory/">
+      <groupName>groupNamePayload</groupName>
+      <userLoginNamesXml><Users>usersPayload</Users></userLoginNamesXml>
+    </RemoveUserCollectionFromGroup>`;
 	
-	getUserLoginFromEmail(emailString:string, siteurl:string):Promise<TaxSpUser>{
+	getUserLoginFromEmail(emailStrings:string[], siteurl:string):Promise<TaxSpUser[]>{
 		let requestBody=this.xmlPayloadWrapperStart+this.getUserLoginFromEmailPayload+this.xmlPayloadWrapperEnd;
-		requestBody = requestBody.replace("emailString", emailString);
+		let userString = "<User Email=\"emailString\"/>";
+		let finalPayload = "";
+		for(let x:number = 0;x<emailStrings.length;x++){
+			finalPayload+=userString.replace("emailString", emailStrings[x]);
+		}
+		requestBody = requestBody.replace("payload", finalPayload);
 		return this.http.post(siteurl+this.serviceUrl, requestBody, {headers:this.headers})
 		.toPromise()
 		.then(function(res){
-			let x:any= $(res.text()).find("User").first();
-			return {id:x.attr('SiteUser'),displayName:x.attr('DisplayName'), login:x.attr('Login'), email:x.attr('Email')};
+			let result:TaxSpUser[]=[];
+			$(res.text()).find("User").each(function(index:any){				
+				result.push( {id:$(this).attr('SiteUser'),displayName:$(this).attr('DisplayName'), login:$(this).attr('Login'), email:$(this).attr('Email')});
+			});
+			return result;
 		})
 		.catch(this.handleError);
+	}
+	
+	addUserCollectionToGroup(users:TaxSpUser[],groupName:string, siteurl:string):Promise<number>{
+		let requestBody=this.xmlPayloadWrapperStart+this.addUserCollectionToGroupPayload+this.xmlPayloadWrapperEnd;
+		requestBody = requestBody.replace("groupNamePayload", groupName);
+		let internalpayload:string="";
+		for(let x = 0 ;x<users.length;x++){
+			/*internalpayload+="<User LoginName=\""+users[x].login+"\" Email=\""
+			+users[x].email+"\" Name=\""+ users[x].displayName +"\"/>";*/
+			internalpayload+="<User LoginName=\""+users[x].login+"\"/>";
+		}
+		requestBody = requestBody.replace("usersPayload", internalpayload);
+		return this.http.post(siteurl+this.serviceUrl, requestBody, {headers:this.headers})
+		.toPromise()
+		.then(function(res){
+			return 0;
+		})
+		.catch(this.handleError);
+		
+	}
+	
+	
+	removeUserCollectionFromGroup(users:TaxSpUser[],groupName:string, siteurl:string):Promise<number>{
+		let requestBody=this.xmlPayloadWrapperStart+this.removeUserCollectionFromGroupPayload+this.xmlPayloadWrapperEnd;
+		requestBody = requestBody.replace("groupNamePayload", groupName);
+		let internalpayload:string="";
+		for(let x = 0 ;x<users.length;x++){
+			internalpayload+="<User LoginName=\""+users[x].login+"\"/>";
+		}
+		requestBody = requestBody.replace("usersPayload", internalpayload);
+		return this.http.post(siteurl+this.serviceUrl, requestBody, {headers:this.headers})
+		.toPromise()
+		.then(function(res){
+			return 0;
+		})
+		.catch(this.handleError);
+		
 	}
 	
 	private handleError(error: any): Promise<any> {

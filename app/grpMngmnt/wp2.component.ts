@@ -20,7 +20,7 @@ import {GroupEntry} from './group-entry';
 	
     template:`
 	<div class="container">
-			<h1>ISD Portal email & security Group Management</h1>
+			<h1>ISD Portal Group Management</h1>
 			<div *ngIf="!selectedGroup">
 				<div class="form-horizontal" >
 					<div class="form-group" tooltip="You can enter one email or multiple emails separated by semi-colon ';'">
@@ -100,7 +100,7 @@ import {GroupEntry} from './group-entry';
 					</div>
 				</div>
 				<input type="button" class="btn btn-primary" (click)="selectedGroup=null;"  value="Go Back" />
-				<input type="text" value="jorge.gutierrez@taxx.state.oh.us" #testValue />
+				<input type="text" value="" #testValue />
 				<input type="button" class="btn btn-primary" (click)="testEmail(testValue.value);"  value="TestAPI" />
 				{{debugValue|json}}
 				{{selectedGroup.spGroupName}}
@@ -221,10 +221,25 @@ export class WebPart2Component implements OnInit {
 	}
 	
 	testEmail(emailValue:string){
-		this.sharepointUserGroupWebService.getUserLoginFromEmail(emailValue,'https://sp2010-tax.sp.ohio.gov/Forms/ISDPortal/').then((y)=>{
+		/*
+		this.sharepointUserGroupWebService.getUserLoginFromEmail(['jorge.gutierrez@tax.state.oh.us', 'mahendra.daga@tax.state.oh.us'],'/Forms/ISDPortal/',emailValue ).then((y)=>{
 			this.debugValue= y;
-		})
+			return y;						
+		})		
 		.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
+		*/
+
+	
+	
+		this.sharepointUserGroupWebService.getUserLoginFromEmail(['jorge.gutierrez@tax.state.oh.us', 'mahendra.daga@tax.state.oh.us'],'/Forms/ISDPortal/').then((y)=>{
+			this.debugValue= y;
+			return y;						
+		})
+		.then((result1)=>
+			 this.sharepointUserGroupWebService.removeUserCollectionFromGroup(result1,"AAAAjorge",'/Forms/ISDPortal/' )
+		)
+		.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
+		
 	}
 	
 	filterGroupEntry(entry:GroupEntry):boolean{

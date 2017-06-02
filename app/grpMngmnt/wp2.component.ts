@@ -7,6 +7,8 @@ import {SharepointUserGroupWebService} from './sharepoint-usergroup-web.service'
 import {MOCKGROUPS} from './mock-tax-sp-groups';
 import {TaxSpGroup} from './tax-sp-group';
 import {GroupEntry} from './group-entry';
+import {TaxGroupManagement} from './tax-group-management';
+import {TaxSpUser} from './tax-sp-user';
 
 
 
@@ -53,8 +55,14 @@ import {GroupEntry} from './group-entry';
 				<input type="button" style="margin-bottom:10px;" class="btn btn-primary" (click)="selectedGroup=null;"  value="Go Back" />
 				<div class="well">
 					<h2>Add / Remove People for: {{selectedGroup.title}}</h2>	
-					<strong>Group description:</strong>
-					{{selectedGroup.description}}
+					<div style="padding-bottom:5px;">
+						<strong>Group description:</strong>
+						{{selectedGroup.description}}
+					</div>
+					<div  style="padding-bottom:5px;" *ngIf="selectedGroup.spGroupName">
+						<strong>Associated SharePoint Group:</strong>
+						{{selectedGroup.spGroupName}}
+					</div>
 					<div *ngIf="successMessage" class="alert alert-success">
 						<strong>Success!!!</strong> {{successMessage}}
 					</div>
@@ -111,8 +119,11 @@ import {GroupEntry} from './group-entry';
 })
 export class WebPart2Component implements OnInit {
 
-	constructor(private sharepointListsWebService: SharepointListsWebService, private sharepointUserGroupWebService: SharepointUserGroupWebService){}
+	constructor(private sharepointListsWebService: SharepointListsWebService, private sharepointUserGroupWebService: SharepointUserGroupWebService){
+		this.taxGroupManagement = new TaxGroupManagement(this.sharepointListsWebService, this.sharepointUserGroupWebService);
+	}
 	
+	taxGroupManagement: TaxGroupManagement;
 	groups: GroupEntry[];
 	selectedGroup:GroupEntry ;
 	emailsToErase:string[]= [];
@@ -126,7 +137,7 @@ export class WebPart2Component implements OnInit {
 	
 	
 	 ngOnInit(): void {
-	 this.sharepointListsWebService.getListItems(GroupEntry).then
+	 this.sharepointListsWebService.getListItems(GroupEntry, null).then
 	 (result => this.groups = <GroupEntry[]>result);
 	}
 	
@@ -181,17 +192,14 @@ export class WebPart2Component implements OnInit {
 	removeSelected(){
 		this.errorRemoving = '';
 		this.successMessage ="";
-		let finalArray:string[]= this.selectedGroup.arrayOfEmails.slice();
-		for(let x = 0 ;x<this.emailsToErase.length;x++){
-			finalArray.splice(finalArray.indexOf(this.emailsToErase[x]),1);
-		}
-		this.sharepointListsWebService.updateListItem(this.selectedGroup,finalArray.toString()).then(()=>{
-		this.successMessage = "The following email(s) were successfully removed: "+this.emailsToErase.toString(); 
-		this.selectedGroup.arrayOfEmails = finalArray;
-		this.selectedGroup.emails = finalArray.toString();
-		this.emailsToErase = [];
+		this.taxGroupManagement.removeEmails(this.selectedGroup, this.emailsToErase, true).
+		then((newArrayOfEmails)=>{
+			this.successMessage = "The following email(s) were successfully removed: "+this.emailsToErase.toString(); 
+			this.selectedGroup.arrayOfEmails = newArrayOfEmails;
+			this.selectedGroup.emails = newArrayOfEmails.toString();
+			this.emailsToErase = [];
 		})
-	.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
+		.catch((error:any)=> this.errorAdding = "An error occurred while removing: "+(error.message || error));
 	}
 	
 	onChange2(emailEntry2:string){
@@ -228,15 +236,19 @@ export class WebPart2Component implements OnInit {
 		})		
 		.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
 		*/
-
-	
-	
+	/*
 		this.sharepointUserGroupWebService.getUserLoginFromEmail(['jorge.gutierrez@tax.state.oh.us', 'mahendra.daga@tax.state.oh.us'],'/Forms/ISDPortal/').then((y)=>{
 			this.debugValue= y;
 			return y;						
 		})
 		.then((result1)=>
-			 this.sharepointUserGroupWebService.removeUserCollectionFromGroup(result1,"AAAAjorge",'/Forms/ISDPortal/' )
+			 this.sharepointUserGroupWebService.addUserCollectionToGroup(result1,"AAAAjorge",'/Forms/ISDPortal/' )
+		)
+		.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
+		*/
+		
+		this.taxGroupManagement.getLoginsFromUserProfile(["jorge.gutierrez@tax.state.oh.us", "Mahendra.daga@tax.state.oh.us"]).then((result1)=>
+			 this.sharepointUserGroupWebService.addUserCollectionToGroup(<TaxSpUser[]>result1,"AAAAjorge",'/Forms/ISDPortal/' )
 		)
 		.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
 		

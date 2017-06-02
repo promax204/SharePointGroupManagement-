@@ -40,11 +40,11 @@ export class GroupEntry extends SharepointListItem{
 				tempArray3 = stringOfEmails.split(';');
 				tempArray3.sort(GroupEntry.sortInsensitive);
 				tempArray3.forEach(function(item:string, index:number){
-					item = item.trim();
+					item = item.replace(/(\r\n|\n|\r)/gm,"").trim();
 					if(item.indexOf(",")>=0){
 						tempArray2 = item.split(',');
 						tempArray2.forEach(function(item2:string, index2:number){
-							item2= item2.trim();
+							item2= item2.replace(/(\r\n|\n|\r)/gm,"").trim();
 						});
 						tempArray=tempArray.concat(tempArray2);
 					}
@@ -53,7 +53,7 @@ export class GroupEntry extends SharepointListItem{
 						tempArray.push(item);
 					}
 				});
-				tempArray.sort();
+				tempArray.sort(GroupEntry.sortInsensitive);
 				tempArray = tempArray.filter(a=> a.length>0);
 			}
 		}

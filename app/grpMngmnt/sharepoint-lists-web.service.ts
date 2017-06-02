@@ -31,13 +31,21 @@ export class SharepointListsWebService{
 	private headers = new Headers({
 								 'Content-Type': 'application/soap+xml; charset=utf-8',
 							 });
-							 
-    getListItems(ctor:SharepointListItemConstructor):Promise<SharepointListItem[]>{
+
+	///If Filter query is not empty, we will use it to filter the CAML QUery.						 
+    getListItems(ctor:SharepointListItemConstructor, filterQuery:[string,string]):Promise<SharepointListItem[]>{
 		let dummyInstance = new ctor();
 		let currentPayload = this.xmlPayloadWrapperStart+this.getListItemsPayload+this.xmlPayloadWrapperEnd;
 		currentPayload = currentPayload.replace("listNamePayLoad",dummyInstance.getListName());
 		currentPayload = currentPayload.replace("viewNamePayLoad", "");
-		currentPayload = currentPayload.replace("queryPayload", "");
+		if(filterQuery){
+			let camlQuery = "<Query><Where><Eq><FieldRef Name='FieldName' /><Value Type='Text'>ValueName</Value></Eq></Where></Query>"
+			camlQuery = camlQuery.replace("FieldName", filterQuery[0]);
+			camlQuery = camlQuery.replace("ValueName", filterQuery[1]);
+			currentPayload = currentPayload.replace("queryPayload", camlQuery );
+		}else{
+			currentPayload = currentPayload.replace("queryPayload", "");
+		}
 		currentPayload = currentPayload.replace("viewFieldsPayload", "");
 		currentPayload = currentPayload.replace("rowLimitPayload", "");
 		currentPayload = currentPayload.replace("queryOptionsPayload", "");		

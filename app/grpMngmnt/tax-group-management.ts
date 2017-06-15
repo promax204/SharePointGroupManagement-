@@ -69,6 +69,35 @@ export class TaxGroupManagement{
 		return Promise.all(promises).then(()=> finalArray);	
 	}
 	
-		
+	///Business method that will try to add the specified emails.
+	///IT first adds them from the list Item.
+	///Then , if spGroupName is present, it tries to add the members from the group.
+	///  For that second action, it looks up  the login id's, depending on:
+	///  - if it's test, it'll look into the user information list.
+	///  - if it's not test, it'll look into the getUserLoginFromEmail from the usergroup web service.
+	addEmails(group:GroupEntry, emailsToAdd:string[],isTest:boolean):Promise<string[]>{
+		let promises: Promise<any>[] = [];
+		let promiseOfSpTaxUser:Promise<TaxSpUser[]>;
+		let finalArray:string[];
+		let localGrpName:string;
+		let localSiteUrl:string;
+		finalArray=group.arrayOfEmails.concat(emailsToAdd);
+		finalArray.sort(GroupEntry.sortInsensitive);
+		promises.push(this.sharepointListsWebService.updateListItem(group,finalArray.toString()));
+		///If need to update the associated SharePoint Group...
+		if(group.spGroupName){
+			localGrpName = group.spGroupName;
+			localSiteUrl = group.getSiteUrl();
+			if(isTest){
+				promiseOfSpTaxUser = this.getLoginsFromUserProfile(emailsToAdd);
+			}else{
+				promiseOfSpTaxUser = this.sharepointUserGroupWebService.getUserLoginFromEmail(emailsToAdd,localSiteUrl);
+			}
+			promises.push(promiseOfSpTaxUser.
+			then((spTaxUsers)=>this.sharepointUserGroupWebService
+			.addUserCollectionToGroup(spTaxUsers,localGrpName,localSiteUrl)));
+		}
+		return Promise.all(promises).then(()=> finalArray);	
+	}
 
 }

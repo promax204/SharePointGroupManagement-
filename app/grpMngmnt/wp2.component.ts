@@ -108,10 +108,6 @@ import {TaxSpUser} from './tax-sp-user';
 					</div>
 				</div>
 				<input type="button" class="btn btn-primary" (click)="selectedGroup=null;"  value="Go Back" />
-				<input type="text" value="" #testValue />
-				<input type="button" class="btn btn-primary" (click)="testEmail(testValue.value);"  value="TestAPI" />
-				{{debugValue|json}}
-				{{selectedGroup.spGroupName}}
 			</div>
 	</div>		
 	`,
@@ -133,7 +129,6 @@ export class WebPart2Component implements OnInit {
 	successMessage:string;
 	originalGroups:GroupEntry[]=null;
 	searchTerm:string;
-	debugValue:any;
 	
 	
 	 ngOnInit(): void {
@@ -162,19 +157,16 @@ export class WebPart2Component implements OnInit {
 							duplicatedArray.push(finalArray[x]);
 						}
 					}
-					if(filteredArray.length >0){
-						finalArray=this.selectedGroup.arrayOfEmails.concat(filteredArray);
-						finalArray.sort(GroupEntry.sortInsensitive);
-						this.sharepointListsWebService.updateListItem(this.selectedGroup,finalArray.toString()).then(()=>{
-							this.successMessage = finalArray.length - this.selectedGroup.arrayOfEmails.length + " emails were added!!!";
-							if(duplicatedArray.length > 0){
-								this.successMessage+="\n The following emails were not added because were already part of the group: "+duplicatedArray.toString();
-							}
-							this.selectedGroup.arrayOfEmails = finalArray;
-							this.selectedGroup.emails = finalArray.toString();
-							this.emailsToAdd = '';
-							})
-						.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
+					if(filteredArray.length >0){				
+						this.taxGroupManagement.addEmails(this.selectedGroup, filteredArray, true).then((resultArray)=>{
+								this.successMessage = resultArray.length - this.selectedGroup.arrayOfEmails.length + " emails were added!!!";
+								if(duplicatedArray.length > 0){
+									this.successMessage+="\n The following emails were not added because were already part of the group: "+duplicatedArray.toString();
+								}
+								this.selectedGroup.arrayOfEmails = resultArray;
+								this.selectedGroup.emails = resultArray.toString();
+								this.emailsToAdd = '';
+						}).catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
 					}
 					else
 					this.errorAdding='The specified email(s) already exist in this group';
@@ -228,37 +220,9 @@ export class WebPart2Component implements OnInit {
 		
 	}
 	
-	testEmail(emailValue:string){
-		/*
-		this.sharepointUserGroupWebService.getUserLoginFromEmail(['jorge.gutierrez@tax.state.oh.us', 'mahendra.daga@tax.state.oh.us'],'/Forms/ISDPortal/',emailValue ).then((y)=>{
-			this.debugValue= y;
-			return y;						
-		})		
-		.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
-		*/
-	/*
-		this.sharepointUserGroupWebService.getUserLoginFromEmail(['jorge.gutierrez@tax.state.oh.us', 'mahendra.daga@tax.state.oh.us'],'/Forms/ISDPortal/').then((y)=>{
-			this.debugValue= y;
-			return y;						
-		})
-		.then((result1)=>
-			 this.sharepointUserGroupWebService.addUserCollectionToGroup(result1,"AAAAjorge",'/Forms/ISDPortal/' )
-		)
-		.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
-		*/
-		
-		this.taxGroupManagement.getLoginsFromUserProfile(["jorge.gutierrez@tax.state.oh.us", "Mahendra.daga@tax.state.oh.us"]).then((result1)=>
-			 this.sharepointUserGroupWebService.addUserCollectionToGroup(<TaxSpUser[]>result1,"AAAAjorge",'/Forms/ISDPortal/' )
-		)
-		.catch((error:any)=> this.errorAdding = "An error occurred while adding: "+(error.message || error));
-		
-	}
-	
 	filterGroupEntry(entry:GroupEntry):boolean{
 		return entry.emails.toLowerCase().indexOf(this.searchTerm.toLowerCase())>=0;
 	}
-	
-	
 	
 	onSelect(group:GroupEntry):void{
 		this.selectedGroup = group;

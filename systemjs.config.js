@@ -15,6 +15,9 @@
 	  wp2: 'app/wp2',
 	  prodMode: 'app/prodMode',
 	  grpMngmnt: 'app/grpMngmnt',
+	  VehicleRegistration: 'app/VehicleRegistration',
+	  VehicleRegistrationReactive: 'app/VehicleRegistrationReactive',
+	  NgTaxServices: 'app/NgTaxServices',
 
       // angular bundles
       '@angular/core': 'npm:@angular/core/bundles/core.umd.js',
@@ -25,6 +28,7 @@
       '@angular/http': 'npm:@angular/http/bundles/http.umd.js',
       '@angular/router': 'npm:@angular/router/bundles/router.umd.js',
       '@angular/forms': 'npm:@angular/forms/bundles/forms.umd.js',
+	  
 
       // other libraries
       'rxjs':                      'npm:rxjs',
@@ -45,13 +49,24 @@
         main: './main.js',
         defaultExtension: 'js'
       },
+	  VehicleRegistration: {
+        main: './main.js',
+        defaultExtension: 'js'
+      },
+	  VehicleRegistrationReactive: {
+        main: './main.js',
+        defaultExtension: 'js'
+      },
 	  prodMode:{
 		main: './main.js',
         defaultExtension: 'js'
 	  },
       rxjs: {
         defaultExtension: 'js'
-      }
+      },
+	  NgTaxServices:{
+		defaultExtension: 'js'
+	  }
 	 
     }
   });

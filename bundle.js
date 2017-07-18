@@ -6,7 +6,7 @@ var builder = new SystemBuilder();
     .then(function() {
         /**** Bundle Common Files into common bundle ****/
         var depOutputFile = argv.prod ? 'dist/common.min.js' : 'dist/common.js';
-        return builder.bundle('(wp1 & wp2 & grpMngmnt)', depOutputFile, {
+        return builder.bundle('(wp1 & wp2 & grpMngmnt & VehicleRegistration & VehicleRegistrationReactive)', depOutputFile, {
             minify: argv.prod,
             mangle: argv.prod,
             sourceMaps: argv.prod,
@@ -57,6 +57,40 @@ var builder = new SystemBuilder();
             rollup: argv.prod
         });
     })
+	 .then(function() {
+        /**** Bundle VehicleRegistration Files into VehicleRegistration bundle ****/
+        var appSource = argv.prod ? 'VehicleRegistration - dist/common.min.js' : 'VehicleRegistration - dist/common.js';
+        var appOutputFile = argv.prod ? 'dist/VehicleRegistration.min.js' : 'dist/VehicleRegistration.js';
+        return builder.bundle(appSource, appOutputFile, {
+            minify: argv.prod,
+            mangle: argv.prod,
+            sourceMaps: argv.prod,
+            rollup: argv.prod
+        });
+    })
+	 .then(function() {
+        /**** Bundle VehicleRegistration Files into VehicleRegistration bundle ****/
+        var appSource = argv.prod ? 'VehicleRegistrationReactive - dist/common.min.js' : 'VehicleRegistrationReactive - dist/common.js';
+        var appOutputFile = argv.prod ? 'dist/VehicleRegistrationReactive.min.js' : 'dist/VehicleRegistrationReactive.js';
+        return builder.bundle(appSource, appOutputFile, {
+            minify: argv.prod,
+            mangle: argv.prod,
+            sourceMaps: argv.prod,
+            rollup: argv.prod
+        });
+    })
+	  /**** 
+	.then(function() {
+      Bundle NgTaxServices Files into NgTaxServices bundle 
+        var appSource = argv.prod ? 'NgTaxServices - dist/common.min.js' : 'NgTaxServices - dist/common.js';
+        var appOutputFile = argv.prod ? 'dist/NgTaxServices.min.js' : 'dist/NgTaxServices.js';
+        return builder.bundle(appSource, appOutputFile, {
+            minify: argv.prod,
+            mangle: argv.prod,
+            sourceMaps: argv.prod,
+            rollup: argv.prod
+        });
+    })****/
     .then(function() {
         console.log('bundle built successfully');
     }); 

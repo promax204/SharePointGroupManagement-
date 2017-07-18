@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="bootstrap3.3.7.min.css">
 
     <!-- Polyfill(s) for older browsers -->
     <script src="node_modules/core-js/client/shim.min.js"></script>
@@ -14,11 +15,12 @@
 	<script src="jquery-3.1.1.min.js"></script>
     <script src="systemjs.config.js"></script>
     <script>
-	  System.import('grpMngmnt').catch(function(err){ console.error(err); });
+	  System.import('VehicleRegistrationReactive').catch(function(err){ console.error(err); });
     </script>
   </head>
 
   <body>
-	<web-part-2>Loading second webpart content here ...</web-part-2>
+	<div style="height:50px"> </div>
+	<vehicle-registration-reactive>Loading reacctive content here ...</vehicle-registration-reactive>
   </body>
 </html>

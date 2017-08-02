@@ -6,7 +6,6 @@ declare var $:any;
 import {SharepointListItem} from './sharepoint-list-item';
 import {SharepointListItemConstructor} from './sharepoint-list-item-constructor';
 
-
 @Injectable()
 export class SharepointListsWebService{
 
@@ -33,16 +32,26 @@ export class SharepointListsWebService{
 							 });
 
 	///If Filter query is not empty, we will use it to filter the CAML QUery.						 
-    getListItems(ctor:SharepointListItemConstructor, filterQuery:[string,string]):Promise<SharepointListItem[]>{
+	//Filter QUery : ifr provided, need to be a field Equals to a Value.
+	//camlQuery: If provided, the caml query is applied.
+	// If no filter nor caml query, an empty query is passed (likely to get all the items).
+    getListItems(ctor:SharepointListItemConstructor, filterQuery:[string,string], camlQuery:string, orderByField:string):Promise<SharepointListItem[]>{
 		let dummyInstance = new ctor();
 		let currentPayload = this.xmlPayloadWrapperStart+this.getListItemsPayload+this.xmlPayloadWrapperEnd;
 		currentPayload = currentPayload.replace("listNamePayLoad",dummyInstance.getListName());
 		currentPayload = currentPayload.replace("viewNamePayLoad", "");
-		if(filterQuery){
-			let camlQuery = "<Query><Where><Eq><FieldRef Name='FieldName' /><Value Type='Text'>ValueName</Value></Eq></Where></Query>"
-			camlQuery = camlQuery.replace("FieldName", filterQuery[0]);
-			camlQuery = camlQuery.replace("ValueName", filterQuery[1]);
-			currentPayload = currentPayload.replace("queryPayload", camlQuery );
+		if(filterQuery||camlQuery){
+		
+			if(filterQuery){
+				let internalCamlQuery = "<Query><Where><Eq><FieldRef Name='FieldName' /><Value Type='Text'>ValueName</Value></Eq></Where></Query>"
+				internalCamlQuery = camlQuery.replace("FieldName", filterQuery[0]);
+				internalCamlQuery = camlQuery.replace("ValueName", filterQuery[1]);
+				currentPayload = currentPayload.replace("queryPayload", internalCamlQuery );
+			}
+			else{
+				currentPayload = currentPayload.replace("queryPayload", camlQuery );
+			}
+			
 		}else{
 			currentPayload = currentPayload.replace("queryPayload", "");
 		}
@@ -61,7 +70,6 @@ export class SharepointListsWebService{
 		})
 		.catch(this.handleError);
 	}
-	
 	
 	
 	/*Use this method for updating only one column in the list.*/

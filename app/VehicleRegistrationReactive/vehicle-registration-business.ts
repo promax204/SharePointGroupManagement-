@@ -12,7 +12,7 @@ export class VehicleRegistrationBusiness{
 	}
 	
 	loadItem(id:string):Promise<VehicleRegistrationListItem[]>{
-		return this.sharepointListsWebService.getListItems(VehicleRegistrationListItem,["ID", id]);
+		return this.sharepointListsWebService.getListItems(VehicleRegistrationListItem,["ID", id], null, null);
 	}
 	
 }

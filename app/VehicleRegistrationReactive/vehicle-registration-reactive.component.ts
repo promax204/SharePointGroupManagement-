@@ -5,6 +5,8 @@ import {OnInit} from '@angular/core';
 import {UserService} from '../NgTaxServices/user-service';
 import {SharepointListsWebService} from '../NgTaxServices/sharepoint-lists-web.service';
 import {UrlService} from '../NgTaxServices/url-service';
+import {NestedReactiveComponent} from './nested-reactive-component';
+
 
 
 import {VehicleRegistrationBusiness} from './vehicle-registration-business';
@@ -170,21 +172,19 @@ import {VehicleRegistrationListItem} from './vehicle-registration-list-entry';
 						<label class="control-label col-sm-4"  for="TaxVehicleEmployeeName">Employee Name: </label>
 						<div class="col-sm-8"  >
 							<people-picker></people-picker>
+							
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="control-label col-sm-4" for="TaxVehicleEmployeeNumber" >Employee Number: </label>
 						<div class="col-sm-8"  >
-							<input type="text" id="TaxVehicleEmployeeNumber" class="form-control" mdTooltip="Enter Employee Number" formControlName="EmployeeNumber"/>
-							<div *ngIf="formErrors.EmployeeNumber" class="alert alert-danger">
-								{{formErrors.EmployeeNumber}}
-							</div>
+							<nested-reactive-component mdTooltip="Enter Employee Number" controlId="TaxVehicleEmployeeNumber" controlKey="insideTextbox"  [requiredMessage]="validationMessages.EmployeeNumber.required" [group]="vehicleFormData.get('EmployeeNumber')"></nested-reactive-component>
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="control-label col-sm-4" for="TaxVehicleEmployeePhone" >Work Phone Number: </label>
 						<div class="col-sm-8"  >
-							<input type="tel" id="TaxVehicleEmployeePhone" class="form-control" mdTooltipPosition="above" mdTooltip="Enter Work Phone Number"  formControlName="EmployeePhone" />
+							<input type="tel" id="TaxVehicleEmployeePhone" class="form-control" mdTooltipPosition="above" mdTooltip="Enter Work Phone Number"  formControlName="EmployeePhone" required />
 							<div *ngIf="formErrors.EmployeePhone" class="alert alert-danger">
 								{{formErrors.EmployeePhone}}
 							</div>
@@ -197,6 +197,12 @@ import {VehicleRegistrationListItem} from './vehicle-registration-list-entry';
 							<div *ngIf="formErrors.EmployeeEmail" class="alert alert-danger">
 								{{formErrors.EmployeeEmail}}
 							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-4" for="TaxVehicleDummyPerson" >Dummy Person:</label>
+						<div class="col-sm-8"  >
+							<nested-reactive-component mdTooltip="Enter Dummy Person" controlId="TaxVehicleDummyPerson" controlKey="insideTextbox"  [requiredMessage]="validationMessages.EmployeePerson.required" [group]="vehicleFormData.get('EmployeePerson')"></nested-reactive-component>
 						</div>
 					</div>
 				</div>
@@ -379,6 +385,7 @@ import {VehicleRegistrationListItem} from './vehicle-registration-list-entry';
 			</div>
 			
 		</div>
+		{{vehicleFormData.value|json}}
 		
 		</form>
 		
@@ -406,8 +413,12 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 					if(result){
 						let castedResult : VehicleRegistrationListItem[];
 						castedResult = <VehicleRegistrationListItem[]>result;						
-						// to change service's method to accept viewfields.
+						
+						
 						this.vehicleFormData.patchValue(castedResult[0])
+						//Form groups:
+						this.vehicleFormData.get('EmployeeNumber.insideTextbox').patchValue(castedResult[0]['EmployeeNumber'])
+						this.vehicleFormData.get('EmployeePerson.insideTextbox').patchValue(castedResult[0]['EmployeePerson'])
 					}
 				});
 		}
@@ -416,10 +427,11 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 	createForm() {
 		this.vehicleFormData = this.fb.group({
 		ID: {value: '', disabled: true},
-		  EmployeeName:   ['',     Validators.required]	, // <--- the FormControl called "name"
-		  EmployeeNumber: ['',     Validators.required],
+		  EmployeeName:   ['',     Validators.required]	, 
+		  EmployeeNumber:  this.fb.group({insideTextbox:['', Validators.required]}),
 		  EmployeePhone:  ['',     Validators.required],
 		  EmployeeEmail:  ['', 	   Validators.required],
+		  EmployeePerson: this.fb.group({insideTextbox:'' additionalTextbox:''}),
 		  
 		  Vehicle1Year :  ['', 	  [ Validators.required,  Validators.pattern('[0-9]{4}')]],
 		  Vehicle1Make :  ['', 	   Validators.required],
@@ -456,7 +468,9 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 		let formDictionary : [string, string][] = [];
 		this.thinking  = true;
 		Object.keys(this.vehicleFormData.controls).forEach(key => 
-			formDictionary.push([key, this.vehicleFormData.get(key).value]));
+		//there is a chance to 'preprocess' items here, or skip them if need to.
+			formDictionary.push([key,
+			this.vehicleFormData.get((key == "EmployeeNumber"|| key =="EmployeePerson")?key+".insideTextbox":key).value]));
 		this.vehicleRegistrationBusiness.addOrUpdateListItem(formDictionary).then(
 		(id)=>{ 
 			this.thinking = false;
@@ -476,7 +490,7 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 	  for (const field in this.formErrors) {
 		// clear previous error message (if any)
 		this.formErrors[field] = '';
-		const control = form.get(field);
+		const control = form.get(field.replace('_', '.'));
 
 		if (control && control.dirty && !control.valid ) {/*&& control.touched???*/
 		  const messages = this.validationMessages[field];
@@ -489,7 +503,7 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 	
 	formErrors = {
 	  'EmployeeName': '',
-	  'EmployeeNumber':'',
+	  //'EmployeeNumber_insideTextbox':'',
 	  'EmployeePhone':'',
 	  'EmployeeEmail':'', 
 	  'Vehicle1Year' :  '',
@@ -510,6 +524,7 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 		'forbiddenName': 'Someone named "Bob" cannot be a hero.'*/
 	  },
 	  'EmployeeNumber': {'required': 'Employee Number is required.'},
+	  'EmployeePerson': {'required': 'A selection of an employee is required.'},
 	  'EmployeePhone': {'required': 'Work Phone Number is required.'},
 	  'EmployeeEmail': {'required': 'Email Address is required.'},
 	'Vehicle1Year' :  {'required': 'Required', 'pattern':'Enter a 4 digit year'},

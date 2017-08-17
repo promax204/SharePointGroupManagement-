@@ -44,8 +44,8 @@ export class SharepointListsWebService{
 		
 			if(filterQuery){
 				let internalCamlQuery = "<Query><Where><Eq><FieldRef Name='FieldName' /><Value Type='Text'>ValueName</Value></Eq></Where></Query>"
-				internalCamlQuery = camlQuery.replace("FieldName", filterQuery[0]);
-				internalCamlQuery = camlQuery.replace("ValueName", filterQuery[1]);
+				internalCamlQuery = internalCamlQuery.replace("FieldName", filterQuery[0]);
+				internalCamlQuery = internalCamlQuery.replace("ValueName", filterQuery[1]);
 				currentPayload = currentPayload.replace("queryPayload", internalCamlQuery );
 			}
 			else{

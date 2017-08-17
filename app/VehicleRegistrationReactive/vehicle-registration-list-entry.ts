@@ -19,7 +19,7 @@ constructor(rawResponse?:any){
 		return ["ID", "EmployeeName", "EmployeeNumber" ,"EmployeePhone", "EmployeeEmail" ,"Vehicle1Year" , "Vehicle1Make" ,
 	"Vehicle1Model", "Vehicle1Color","Vehicle2Year" , "Vehicle2Make" ,"Vehicle1LicensePlate",
 	"Vehicle2Model", "Vehicle2Color" ,"Vehicle2LicensePlate","Vehicle3Year" , "Vehicle3Make" ,
-	"Vehicle3Model", "Vehicle3Color","Vehicle3LicensePlate", "HasHandicapPermit", "HandicapPermitRegistration" ,"HandicapPlacardNumber"]
+	"Vehicle3Model", "Vehicle3Color","Vehicle3LicensePlate", "HasHandicapPermit", "HandicapPermitRegistration" ,"HandicapPlacardNumber", "EmployeePerson"]
 	}
 	///user profile service always run on root web .
 	getSiteUrl():string{

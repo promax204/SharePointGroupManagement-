@@ -1,5 +1,5 @@
 
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, FormControl, FormGroup } from '@angular/core';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -32,11 +32,10 @@ import 'rxjs/add/operator/switchMap';
 @Component({
     selector: 'people-picker',
  	template: `
-	<div class="taxPeoplePickerContainer">
+	<div class="taxPeoplePickerContainer" [formGroup]="group">
 		<div *ngIf="selectedEmp" [mdTooltip] = "selectedEmp.email+' - '+selectedEmp.name">
 			{{selectedEmp.title}}
 		</div>
-		Flag: {{flag}}Enter :{{userHitEnter}}
 		<input type="text" mdInput [class.taxResolvedPicker]="isResolved" [mdAutocomplete]="auto" #term [mdTooltip]="pickerTooltip" (keydown)="detectKeyDown($event);"  (keyup.enter)="userHitEnter= true;search(term.value ,$event);" (keyup)="search(term.value, $event);" class="taxPeoplePickerText form-control" id="empemail" name="empemail" placeholder="Start typing employee name" [(ngModel)]="empTitle">
 		<md-progress-bar mode="indeterminate"  *ngIf="numberOfActiveRequests>0" ></md-progress-bar>
 		<div *ngIf="currentItems.length==0&& (!isResolved)&& empTitle?.length>1&& numberOfActiveRequests ==0&&(!hideNoResultsFound)" class="alert alert-danger">
@@ -95,6 +94,9 @@ import 'rxjs/add/operator/switchMap';
 	`]
 })
 export class TaxPeoplePickerComponent {
+
+ @Input()
+ group:FormGroup;
 
 	//access to the input that triggers the autocomplete.
 	@ViewChild('term', { read: MdAutocompleteTrigger }) 

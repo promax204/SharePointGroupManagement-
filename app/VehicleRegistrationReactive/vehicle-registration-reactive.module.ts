@@ -10,7 +10,7 @@ import {MdAutocompleteModule} from '@angular/material';
 import {MdInputModule} from '@angular/material';
 import {MdProgressBarModule} from '@angular/material';
 
-
+import {NestedReactiveComponent} from './nested-reactive-component';
 import {TaxPeoplePickerComponent} from './tax-people-picker-component';
 import {NgTaxServices} from '../NgTaxServices/ng-tax-services.module';
 import {UserService} from '../NgTaxServices/user-service';
@@ -24,7 +24,7 @@ import { VehicleRegistrationReactiveComponent }  from './vehicle-registration-re
 @NgModule({
   imports:      [ BrowserModule,BrowserAnimationsModule,HttpModule,ReactiveFormsModule,FormsModule,
 					NgTaxServices,MdTooltipModule ,MdAutocompleteModule,MdInputModule,MdProgressBarModule],
-  declarations: [ VehicleRegistrationReactiveComponent,TaxPeoplePickerComponent],
+  declarations: [ VehicleRegistrationReactiveComponent,TaxPeoplePickerComponent,NestedReactiveComponent],
   bootstrap:    [ VehicleRegistrationReactiveComponent ],
   providers: [UserService,SharepointListsWebService,UrlService],
 })

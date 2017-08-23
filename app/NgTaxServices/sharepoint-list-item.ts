@@ -1,3 +1,5 @@
+
+
 export abstract class SharepointListItem{
 /*itemId:number;*/
 ID:number;

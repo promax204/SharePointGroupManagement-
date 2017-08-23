@@ -1,6 +1,7 @@
 import {SharepointListItem} from '../NgTaxServices/sharepoint-list-item';
 declare var $:any;
 
+
 export class VehicleRegistrationListItem extends SharepointListItem{
 
 
@@ -16,7 +17,7 @@ constructor(rawResponse?:any){
 	}
 	
 	getItemProperties():string[]{	
-		return ["ID", "EmployeeName", "EmployeeNumber" ,"EmployeePhone", "EmployeeEmail" ,"Vehicle1Year" , "Vehicle1Make" ,
+		return ["ID", "EmployeeNumber" ,"EmployeePhone", "EmployeeEmail" ,"Vehicle1Year" , "Vehicle1Make" ,
 	"Vehicle1Model", "Vehicle1Color","Vehicle2Year" , "Vehicle2Make" ,"Vehicle1LicensePlate",
 	"Vehicle2Model", "Vehicle2Color" ,"Vehicle2LicensePlate","Vehicle3Year" , "Vehicle3Make" ,
 	"Vehicle3Model", "Vehicle3Color","Vehicle3LicensePlate", "HasHandicapPermit", "HandicapPermitRegistration" ,"HandicapPlacardNumber", "EmployeePerson"]
@@ -31,6 +32,7 @@ constructor(rawResponse?:any){
 	getFieldToUpdate():string{
 		return 'Not implemented';
 	}
+	
 
 }
 

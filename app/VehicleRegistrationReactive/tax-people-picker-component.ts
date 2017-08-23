@@ -1,6 +1,6 @@
 
-import { Component, Input, Output, EventEmitter, FormControl, FormGroup } from '@angular/core';
-
+import { Component, Input, Output, EventEmitter, OnInit} from '@angular/core';
+import { FormControl, FormGroup , Validators, ValidatorFn , AbstractControl} from '@angular/forms';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 
@@ -33,23 +33,35 @@ import 'rxjs/add/operator/switchMap';
     selector: 'people-picker',
  	template: `
 	<div class="taxPeoplePickerContainer" [formGroup]="group">
-		<div *ngIf="selectedEmp" [mdTooltip] = "selectedEmp.email+' - '+selectedEmp.name">
-			{{selectedEmp.title}}
+		<div *ngIf="selectedEmp" style="padding-left:12px;" [mdTooltip] = "selectedEmp.email+' - '+selectedEmp.name">
+			{{selectedEmp.name}}
 		</div>
-		<input type="text" mdInput [class.taxResolvedPicker]="isResolved" [mdAutocomplete]="auto" #term [mdTooltip]="pickerTooltip" (keydown)="detectKeyDown($event);"  (keyup.enter)="userHitEnter= true;search(term.value ,$event);" (keyup)="search(term.value, $event);" class="taxPeoplePickerText form-control" id="empemail" name="empemail" placeholder="Start typing employee name" [(ngModel)]="empTitle">
+		<input type="text" [class.taxResolvedPicker]="isResolved" [class.taxUnresolvedPicker]="entryNotValid" [mdAutocomplete]="auto" #term 
+			[mdTooltip]="pickerTooltip" (keydown)="detectKeyDown($event);"  
+			(keyup.enter)="userHitEnter= true;search(term.value ,$event);" (blur) = "blurEvent(term.value);" (keyup)="search(term.value, $event);" 
+			class="taxPeoplePickerText form-control" [attr.id]="controlId" formControlName="displayName" 
+			placeholder="Start typing employee name" >
 		<md-progress-bar mode="indeterminate"  *ngIf="numberOfActiveRequests>0" ></md-progress-bar>
 		<div *ngIf="currentItems.length==0&& (!isResolved)&& empTitle?.length>1&& numberOfActiveRequests ==0&&(!hideNoResultsFound)" class="alert alert-danger">
 			No results found for '{{empTitle}}'
 		</div>
 		<md-autocomplete #auto="mdAutocomplete">
-			<md-option *ngFor="let item of items | async" [value]="item.title" (onSelectionChange)="setEmployee(item, $event)" [mdTooltip]="item.email+' - '+item.name">
+			<div *ngIf="!isResolved">
+			<md-option  *ngFor="let item of items | async" [value]="item.title"
+			(onSelectionChange)="setEmployee(item, $event)" [mdTooltip]="item.email+' - '+item.name">
 				<div class="taxMainResultPicker">{{item.title}}</div>
 				<div class="taxSecResultPicker">{{item.jobTitle}}</div>
 			</md-option>
+			</div>
 		</md-autocomplete>
 	</div>
 	`,
     styles:[`
+	
+	.taxUnresolvedPicker{
+		font-style:italic;
+		color: #a94442;
+	}
 	
 	.taxResolvedPicker{	
 		text-decoration:underline;
@@ -91,12 +103,22 @@ import 'rxjs/add/operator/switchMap';
 		font-weight:400;
 		margin-top:2px;	
 	}
+	
+	input.ng-invalid  {
+			border-left: 5px solid #a94442; /* red */
+		}
 	`]
 })
-export class TaxPeoplePickerComponent {
+export class TaxPeoplePickerComponent implements OnInit {
+
+ @Input()
+ controlId:string;
 
  @Input()
  group:FormGroup;
+ 
+ @Input()
+ requiredMessage:string;
 
 	//access to the input that triggers the autocomplete.
 	@ViewChild('term', { read: MdAutocompleteTrigger }) 
@@ -108,12 +130,49 @@ export class TaxPeoplePickerComponent {
 	private searchTermStream = new Subject<string>();
 	
 	/*Main property bound to textbox*/
-	empTitle: string = null;
+	//this is GONE
+	//empTitle: string = null;
+	get empTitle():string{
+		if(this.group){
+			return this.group.get('displayName').value;
+		}
+		return null;
+	}
+	set empTitle(valueToSet:string){
+		this.group.get('displayName').patchValue(valueToSet);
+	}
+	get isResolved():boolean{
+		if(this.group){
+			return this.group.get('isResolved').value;
+		}
+		return false;
+	}
+	
+	set isResolved(valueToSet:boolean){
+		this.group.get('isResolved').patchValue(valueToSet);
+	}
+	
+	entryNotValid:boolean= false;
+	/* get entryNotValid():boolean{
+		if(this.group){
+			return this.group.get('entryNotValid').value;
+		}
+		return false;
+	}
+	set entryNotValid(valueToSet:boolean){
+		this.group.get('entryNotValid').patchValue(valueToSet);
+		if(valueToSet){
+			this.group.get('entryNotValid').setErrors({"entryNotValid":true});
+		}else{
+						this.group.get('entryNotValid').setErrors(null);
+
+		}
+	} */
+	
 	selectedEmp: UserInfoListEntry = null;
 	numberOfActiveRequests:number=0;
 	userHitEnter:boolean = false;
 	flag=false;
-	isResolved = false;
 	pickerTooltip = "Please start typing a name";
 	hideNoResultsFound = true;
 
@@ -124,12 +183,15 @@ export class TaxPeoplePickerComponent {
 		this.currentItems = [];
 		this.numberOfActiveRequests = 0;
 		this.selectedEmp = null;
+		this.entryNotValid = false;
 	}
 
 	private resolvePicker(employee: UserInfoListEntry){
 		this.pickerTooltip = employee['email'] +' - ' +employee['name'];
 		this.isResolved =  true;
 		this.selectedEmp = employee;
+		this.entryNotValid = false;
+		this.group.get('insideTextbox').patchValue(employee.ID, {emitEvent:false});
 	}
 
 	private toTitleCase(term: string) {
@@ -143,25 +205,38 @@ export class TaxPeoplePickerComponent {
 		//if(event && event.keyCode ==8&& this.isResolved){
 		
 		let safeKeys :number[]= [9,13,35,36,37,38,39,40] ;
-		if(event && this.isResolved && safeKeys.filter(x=> x==event.keyCode).length==0){
+		if(event && (this.isResolved || this.entryNotValid)&& safeKeys.filter(x=> x==event.keyCode).length==0){
 			//so that i can put here an if isresolved then cleanup the picker.
 			this.cleanPicker();
 			this.empTitle = '';
 			this.flag = true;	// question this line of code? ? ?? ??
+			// cleaning the search results.
+			this.search("", null);
+
 		}
 	}
 	///Sets employee via the autocomplete.
 	/// Either by hitting enter (keyboard) or by clicking on an option.
 	setEmployee(emp: UserInfoListEntry, event:any) {
 		//this.selectedEmp = emp;
-		this.empTitle= '';
+		//commenting the below line for reactive form.
+		//this.empTitle= '';
 		this.search("", null);
 		this.resolvePicker(emp);
 		//this.isResolved = true;
 	}
+	
+	blurEvent(term:string){
+		if(!this.isResolved &&this.empTitle){
+			this.userHitEnter= true;
+			//we are tricking the distinctUntilChanged with the addition of a space.
+			//need better code.
+			this.search(term+" ",  null);
+		}
+	}
 
 	search(term: string, event:KeyboardEvent) {	
-		if(event && event.keyCode > 34 && event.keyCode<41){
+		if(this.entryNotValid ||(event && event.keyCode > 34 && event.keyCode<41)){
 			//disregard arrow keys: 37, 38, 39, 40.
 			//disregard end and home: 35, 36.
 			return ; 
@@ -174,7 +249,12 @@ export class TaxPeoplePickerComponent {
 		}
 		if(this.userHitEnter && this.currentItems){
 			let filteredResults:UserInfoListEntry[];
-			filteredResults = this.currentItems.filter(y => y.title.toUpperCase ==this.empTitle.toUpperCase);
+			filteredResults = this.currentItems.filter(x =>{ 
+			var y = <any> x;
+			var z = this.empTitle.toUpperCase().trim();
+			return y.title.toUpperCase() ==z || y.email.toUpperCase() == z
+			|| y.name.toUpperCase() == z || y.name.toUpperCase() == ("ID\\"+z)
+			});
 			if(filteredResults && filteredResults.length ==1){
 				//this.resolvePicker(filteredResults[0]);
 				this.userHitEnter = false;
@@ -206,7 +286,12 @@ export class TaxPeoplePickerComponent {
 					let filteredResults:UserInfoListEntry[];
 					this.currentItems = tempResults;
 					if(this.userHitEnter){
-						filteredResults = tempResults.filter(y => y.title.toUpperCase ==this.empTitle.toUpperCase);
+						filteredResults = tempResults.filter(x => {
+							var y = <any> x;
+							var z = this.empTitle.toUpperCase().trim();
+							return y.title.toUpperCase() ==z || y.email.toUpperCase() == z
+							|| y.name.toUpperCase() == z || y.name.toUpperCase() == ("ID\\"+z)
+						});
 						this.userHitEnter = false;
 						if(filteredResults && filteredResults.length ==1){
 							//this.resolvePicker(filteredResults[0]);
@@ -214,16 +299,61 @@ export class TaxPeoplePickerComponent {
 							this.empTitle = filteredResults[0].title;
 							this.resolvePicker(filteredResults[0]);
 							tempResults = [];
+						}else if(!this.isResolved){
+							this.entryNotValid = true;
 						}
 					}
 					this.numberOfActiveRequests-=1;
 					return tempResults;
+				}
+				else if(this.userHitEnter&& !this.isResolved){
+					this.entryNotValid = true;
 				}
 				this.numberOfActiveRequests-=1;
 				return x;
 				});
 		  });
 	}
+	
+	//Group level validator. it could perfeclty be a control level validator and mirror either true or false.
+	static customPickerValidator(g:FormGroup){
+		if(g.get('displayName').value){
+			return g.get('isResolved').value?null:{"entryNotValid":true};
+		}
+		return null;
+	}
+	// static customPickerValidator(): ValidatorFn {
+	  // return (control: AbstractControl): {[key: string]: any} => {
+		// return control.value ? {'entryNotValid': {value: control.value}} : null;
+	  // };
+	// }
+	
+	//wait for the group property to be set for the control.
+	ngOnInit(){
+		if(this.requiredMessage){
+			this.group.get('displayName').setValidators(Validators.required); 
+		}
+		//this.group.get('entryNotValid').setValidators(this.customPickerValidator);
+		this.group.get('insideTextbox').valueChanges.subscribe(data => {
+				if(this.group.get('insideTextbox').value){
+				let sourceValue:string = this.group.get('insideTextbox').value;
+				if  ((sourceValue.indexOf(';#')>0)&& sourceValue.length>(sourceValue.indexOf(';#')+2)){
+					this.empTitle = sourceValue.split(';#')[1];
+					this.userHitEnter = true;
+					this.searchTermStream.next(this.empTitle);
+				}
+			}
+			});
+	}
+	
+	static buildItem(){
+		return new FormGroup({
+			insideTextbox: new FormControl(''), 
+			displayName: new FormControl(''), 
+			isResolved: new FormControl(false)
+		}, TaxPeoplePickerComponent.customPickerValidator);
+	}
+	
 
 	
 }

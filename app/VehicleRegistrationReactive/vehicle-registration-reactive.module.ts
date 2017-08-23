@@ -2,7 +2,6 @@ import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import {HttpModule} from '@angular/http';
 import { ReactiveFormsModule } from '@angular/forms'; 
-import { FormsModule } from '@angular/forms';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MdTooltipModule} from '@angular/material';
@@ -22,7 +21,7 @@ import {SharepointListsWebService} from '../NgTaxServices/sharepoint-lists-web.s
 import { VehicleRegistrationReactiveComponent }  from './vehicle-registration-reactive.component';
 
 @NgModule({
-  imports:      [ BrowserModule,BrowserAnimationsModule,HttpModule,ReactiveFormsModule,FormsModule,
+  imports:      [ BrowserModule,BrowserAnimationsModule,HttpModule,ReactiveFormsModule,
 					NgTaxServices,MdTooltipModule ,MdAutocompleteModule,MdInputModule,MdProgressBarModule],
   declarations: [ VehicleRegistrationReactiveComponent,TaxPeoplePickerComponent,NestedReactiveComponent],
   bootstrap:    [ VehicleRegistrationReactiveComponent ],

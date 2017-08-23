@@ -6,6 +6,7 @@ import {UserService} from '../NgTaxServices/user-service';
 import {SharepointListsWebService} from '../NgTaxServices/sharepoint-lists-web.service';
 import {UrlService} from '../NgTaxServices/url-service';
 import {NestedReactiveComponent} from './nested-reactive-component';
+import {TaxPeoplePickerComponent} from './tax-people-picker-component';
 
 
 
@@ -127,7 +128,7 @@ import {VehicleRegistrationListItem} from './vehicle-registration-list-entry';
 			border-left: 5px solid #42A948; /* green 
 		}
 
-	*/	.ng-invalid:not(form)  {
+	*/	input.ng-invalid:not(form)  {
 			border-left: 5px solid #a94442; /* red */
 		}
 		
@@ -137,7 +138,7 @@ import {VehicleRegistrationListItem} from './vehicle-registration-list-entry';
 	`],
     template: `
 		
-		<form [formGroup]="vehicleFormData" (ngSubmit)="onSubmit()" novalidate>
+		<form [formGroup]="vehicleFormData" (ngSubmit)="onSubmit()" (keydown.enter)="$event.preventDefault()" novalidate>
 		<div class="SpTaxGeneral">
 			<div class="InlineDiv" style="width:20%;">
 				<img id="imgTax" src="/siteassets/img/ODTLogo.jpg" alt="Tax Logo" />
@@ -158,21 +159,10 @@ import {VehicleRegistrationListItem} from './vehicle-registration-list-entry';
 					</h4>
 				</div>
 				<div class="form-horizontal SpTaxFormContainer"> 
-					<div class="form-group">
-						<label class="control-label col-sm-4"  for="TaxVehicleEmployeeName">Employee Name: </label>
-						<div class="col-sm-8"  >
-							<input mdTooltip="Enter an employee's name" mdTooltipPosition="above" id="TaxVehicleEmployeeName" type="text" class="form-control" formControlName="EmployeeName" />
-							<div *ngIf="formErrors.EmployeeName" class="alert alert-danger">
-								{{formErrors.EmployeeName}}
-							</div>
-						</div>
-
-					</div>
 					<div class="form-group taxNoOverflow">
-						<label class="control-label col-sm-4"  for="TaxVehicleEmployeeName">Employee Name: </label>
+						<label class="control-label col-sm-4"  for="TaxVehiclePicker" >Employee Name: </label>
 						<div class="col-sm-8"  >
-							<people-picker></people-picker>
-							
+							<people-picker controlId="TaxVehiclePicker" [requiredMessage]="validationMessages.EmployeePerson.required" [group]="vehicleFormData.get('EmployeePerson')"></people-picker>
 						</div>
 					</div>
 					<div class="form-group">
@@ -199,12 +189,12 @@ import {VehicleRegistrationListItem} from './vehicle-registration-list-entry';
 							</div>
 						</div>
 					</div>
-					<div class="form-group">
+					<!--div class="form-group">
 						<label class="control-label col-sm-4" for="TaxVehicleDummyPerson" >Dummy Person:</label>
 						<div class="col-sm-8"  >
 							<nested-reactive-component mdTooltip="Enter Dummy Person" controlId="TaxVehicleDummyPerson" controlKey="insideTextbox"  [requiredMessage]="validationMessages.EmployeePerson.required" [group]="vehicleFormData.get('EmployeePerson')"></nested-reactive-component>
 						</div>
-					</div>
+					</div-->
 				</div>
 				<div class="SpTaxTitleBar SpTaxLowerTitleBar row">
 					<div class="InlineDiv col-sm-4" style="padding-left:12px" >
@@ -427,12 +417,11 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 	createForm() {
 		this.vehicleFormData = this.fb.group({
 		ID: {value: '', disabled: true},
-		  EmployeeName:   ['',     Validators.required]	, 
+		  EmployeePerson: TaxPeoplePickerComponent.buildItem(),
 		  EmployeeNumber:  this.fb.group({insideTextbox:['', Validators.required]}),
 		  EmployeePhone:  ['',     Validators.required],
 		  EmployeeEmail:  ['', 	   Validators.required],
-		  EmployeePerson: this.fb.group({insideTextbox:'' additionalTextbox:''}),
-		  
+		 
 		  Vehicle1Year :  ['', 	  [ Validators.required,  Validators.pattern('[0-9]{4}')]],
 		  Vehicle1Make :  ['', 	   Validators.required],
 		  Vehicle1Model :  ['', 	   Validators.required],
@@ -492,7 +481,7 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 		this.formErrors[field] = '';
 		const control = form.get(field.replace('_', '.'));
 
-		if (control && control.dirty && !control.valid ) {/*&& control.touched???*/
+		if (control && control.dirty && !control.valid ) {
 		  const messages = this.validationMessages[field];
 		  for (const key in control.errors) {
 			this.formErrors[field] += messages[key] + ' ';
@@ -502,7 +491,6 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 	}
 	
 	formErrors = {
-	  'EmployeeName': '',
 	  //'EmployeeNumber_insideTextbox':'',
 	  'EmployeePhone':'',
 	  'EmployeeEmail':'', 
@@ -516,13 +504,12 @@ export class VehicleRegistrationReactiveComponent implements OnInit {
 	};
 	
 	validationMessages = {
-	  'EmployeeName': {
-		'required':      'Employee Name is required.'
-	/*	These ones are not needed for now:
+	/*  'EmployeeName': {
+		'required':      'Employee Name is required.',
 		'minlength':     'Employee Name must be at least 4 characters long.',
 		'maxlength':     'Employee Name cannot be more than 24 characters long.',
-		'forbiddenName': 'Someone named "Bob" cannot be a hero.'*/
-	  },
+		'forbiddenName': 'Someone named "Bob" cannot be a hero.'
+	  },*/
 	  'EmployeeNumber': {'required': 'Employee Number is required.'},
 	  'EmployeePerson': {'required': 'A selection of an employee is required.'},
 	  'EmployeePhone': {'required': 'Work Phone Number is required.'},
